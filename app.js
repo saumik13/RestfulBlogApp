@@ -2,11 +2,16 @@ let express = require("express");
 let app = express();
 let bodyParser = require("body-parser");
 let mongoose = require("mongoose");
+let methodOverride = require("method-override");
+let expresssSanitizer = require("express-sanitizer");
 
-mongoose.connect("mongodb://localhost/restful_blog_app");
+app.use(methodOverride("_method"));
+
+mongoose.connect("mongodb://localhost/restful_blog_app", { useNewUrlParser: true });
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(expresssSanitizer());
 
 //Creating the blog Schema here which has a title, image, body
 
@@ -51,6 +56,8 @@ app.get("/blogs", function (req,res) {
 //    CREATE ROUTES -> the stuff from the new route is sent here
 
 app.post("/blogs", function (req,res) {
+    //Sanitizing to remove script tags etc
+    req.body.blog.body = req.sanitize(req.body.blog.body);
     Blog.create(req.body.blog, function (err,data) {
         if(err){
             console.log("There is an error");
@@ -77,9 +84,53 @@ Blog.findById(req.params.id, function (err, foundBlg) {
 
 } )
 
+});
+
+
+//EDIT ROUTE
+app.get("/blogs/:id/edit", function (req,res) {
+    Blog.findById(req.params.id, function(err, foundBlog)
+    {
+        if(err){
+            console.log("There is an error");
+            res.redirect("/blogs");
+        }else{
+            res.render("edit", {blog:foundBlog});
+        }
+    })
+
+});
+//UPDATE ROUTE -> making the change using mongoose built in function
+app.put("/blogs/:id", function (req,res) {
+    // res.send("its working");
+    //Sanitizing to remove script tags etc
+    req.body.blog.body = req.sanitize(req.body.blog.body);
+
+    Blog.findByIdAndUpdate(req.params.id,req.body.blog,function (err,foundID) {
+        if(err){
+            res.redirect("/blogs");
+        }else{
+            res.redirect("/blogs/"+ req.params.id);
+        }
+
+    })
+
+});
+//DELETE ROUTE
+
+app.delete("/blogs/:id", function (req,res) {
+    Blog.findByIdAndRemove(req.params.id, function (err) {
+        if (err){
+            console.log("There is an error ;(")
+            res.redirect("/blogs");
+        }else{
+            console.log("Entry just deleted!!");
+            res.redirect("/blogs");
+        }
+
+    })
+
 })
-
-
 
 
 

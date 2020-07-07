@@ -11,3 +11,11 @@ i.icon{
 body{
     margin-left: 10%;
 }
+
+#delete{
+    display: inline;
+}
+
+.header.item{
+    border: none;
+}

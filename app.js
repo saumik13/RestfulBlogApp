@@ -34,13 +34,48 @@ app.get("/", function (req,res) {
     res.redirect("/blogs");
 
 })
+//INDEX ROUTES
 app.get("/blogs", function (req,res) {
     // res.render("index");
-    Blog.find({}, function (err,blogs) {
-        res.render("index", {blogs:blogs});
+    Blog.find({}, function (err, blogs) {
+        res.render("index", {blogs: blogs});
+
+    })
+})
+//NEW ROUTES -> shows the form where you can make a new entry
+    app.get("/blogs/new", function(req,res){
+    //    Render the form
+        res.render("new");
+    })
+
+//    CREATE ROUTES -> the stuff from the new route is sent here
+
+app.post("/blogs", function (req,res) {
+    Blog.create(req.body.blog, function (err,data) {
+        if(err){
+            console.log("There is an error");
+        }else{
+
+            console.log("New blog entered");
+            res.redirect("/blogs");
+        }
 
     })
 
+});
+//SHOW ROUTE -> basically describe what each of the blogs are, in detail
+app.get("/blogs/:id", function (req,res) {
+Blog.findById(req.params.id, function (err, foundBlg) {
+    if(err){
+        console.log("There is an error");
+        res.redirect("/blogs");
+
+    }else{
+        res.render("show",{blog:foundBlg});
+
+    }
+
+} )
 
 })
 
